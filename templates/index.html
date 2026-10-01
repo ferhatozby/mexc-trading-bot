@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEXC Otomasyon Paneli</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="wrap">
+  <div class="row" style="justify-content:space-between; align-items:center;">
+    <h1>MEXC Otomasyon Paneli</h1>
+    <form method="post" action="{{ url_for('logout') }}">
+      <button type="submit" class="danger">Çıkış</button>
+    </form>
+  </div>
+  <p class="warn">⚠ Bu panel gerçek parayla, kaldıraçlı işlem açar. API anahtarınızda yalnızca "trade" izni olduğundan, "çekme" (withdraw) izninin kapalı olduğundan emin olun.</p>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash">{% for m in messages %}<div>{{ m }}</div>{% endfor %}</div>
+    {% endif %}
+  {% endwith %}
+
+  <section class="card">
+    <h2>Yeni İş Oluştur</h2>
+    <form method="post" action="{{ url_for('create_job') }}" id="jobForm">
+      <div class="row">
+        <label>Parite (ör. BTCUSDT)
+          <input type="text" name="symbol" placeholder="BTCUSDT" required>
+        </label>
+        <label>Yön
+          <select name="side" required>
+            <option value="long">Long</option>
+            <option value="short">Short</option>
+            <option value="auto">Otomatik (önceki günün mum rengine göre)</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <label>Kaldıraç
+          <input type="number" name="leverage" min="1" max="125" value="10" required>
+        </label>
+        <label>Teminat (USDT)
+          <input type="number" step="0.01" name="margin_usdt" placeholder="50" required>
+        </label>
+      </div>
+      <div class="row">
+        <label>Açılış saati
+          <input type="time" name="start_time" required>
+        </label>
+        <label>Kapanış saati
+          <input type="time" name="end_time" required>
+        </label>
+      </div>
+      <div class="row">
+        <label>Tekrar
+          <select name="mode" id="modeSelect" onchange="toggleMode()">
+            <option value="daily">Her gün</option>
+            <option value="custom_days">Seçili günler</option>
+            <option value="once">Tek seferlik (belirli tarih)</option>
+          </select>
+        </label>
+        <label id="onceLabel" style="display:none">Tarih
+          <input type="date" name="once_date">
+        </label>
+        <label>Mum zaman dilimi (Otomatik yön için)
+          <select name="candle_timeframe">
+            <option value="1m">1 dakika</option>
+            <option value="5m">5 dakika</option>
+            <option value="15m">15 dakika</option>
+            <option value="1h">1 saat</option>
+            <option value="4h">4 saat</option>
+            <option value="1d" selected>Günlük</option>
+            <option value="1w">Haftalık</option>
+          </select>
+        </label>
+      </div>
+      <div class="row" id="daysRow" style="display:none">
+        {% for d,label in [('mon','Pzt'),('tue','Sal'),('wed','Çar'),('thu','Per'),('fri','Cum'),('sat','Cmt'),('sun','Paz')] %}
+        <label class="chk"><input type="checkbox" name="weekday" value="{{d}}"> {{label}}</label>
+        {% endfor %}
+      </div>
+      <button type="submit">İşi Kaydet</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Canlı Test (pozisyon açmaz)</h2>
+    <p class="muted">Sadece MEXC'ten herkese açık, canlı mum verisini çeker ve o an
+      hangi yönün (long/short) seçileceğini gösterir. API anahtarına ihtiyaç duymaz,
+      hiçbir işlem açmaz — sadece "şu an çalışsa ne olurdu" sorusuna cevap verir.</p>
+    <form method="post" action="{{ url_for('test_live') }}">
+      <div class="row">
+        <label>Parite
+          <input type="text" name="test_symbol" placeholder="BTCUSDT" required>
+        </label>
+        <label>Zaman dilimi
+          <select name="test_timeframe">
+            {% for tf in timeframes %}
+            <option value="{{ tf }}" {% if tf=='1d' %}selected{% endif %}>{{ tf }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <button type="submit">Şimdi Test Et</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Aktif / Geçmiş İşler</h2>
+    {% if not jobs %}
+      <p class="muted">Henüz iş yok.</p>
+    {% endif %}
+    <table>
+      <thead><tr><th>#</th><th>Parite</th><th>Yön</th><th>Mum</th><th>Kaldıraç</th><th>Teminat</th><th>Saat</th><th>Tekrar</th><th>Durum</th><th></th></tr></thead>
+      <tbody>
+        {% for j in jobs %}
+        <tr>
+          <td>{{ j.id }}</td>
+          <td>{{ j.symbol }}</td>
+          <td>{{ 'Long' if j.side=='long' else ('Short' if j.side=='short' else 'Otomatik') }}{% if j.side=='auto' and j.resolved_side %} (bugün: {{ 'Long' if j.resolved_side=='long' else 'Short' }}){% endif %}</td>
+          <td>{{ j.candle_timeframe }}</td>
+          <td>{{ j.leverage }}x</td>
+          <td>{{ j.margin_usdt }} USDT</td>
+          <td>{{ j.start_time }}–{{ j.end_time }}</td>
+          <td>{{ j.days }}</td>
+          <td>{{ 'Aktif' if j.active else 'Pasif' }}{% if j.open_quantity %} · Pozisyon açık{% endif %}</td>
+          <td>
+            <form method="post" action="{{ url_for('toggle_job', job_id=j.id) }}" style="display:inline">
+              <button type="submit">{{ 'Durdur' if j.active else 'Başlat' }}</button>
+            </form>
+            <form method="post" action="{{ url_for('remove_job', job_id=j.id) }}" style="display:inline" onsubmit="return confirm('Silinsin mi?')">
+              <button type="submit" class="danger">Sil</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>İşlem Kayıtları</h2>
+    <table>
+      <thead><tr><th>Zaman</th><th>İş #</th><th>Olay</th><th>Detay</th></tr></thead>
+      <tbody>
+        {% for l in logs %}
+        <tr>
+          <td>{{ l.created_at }}</td>
+          <td>{{ l.job_id }}</td>
+          <td class="event-{{ l.event }}">{{ l.event }}</td>
+          <td>{{ l.detail }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<script>
+function toggleMode(){
+  const mode = document.getElementById('modeSelect').value;
+  document.getElementById('daysRow').style.display = (mode === 'custom_days') ? 'flex' : 'none';
+  document.getElementById('onceLabel').style.display = (mode === 'once') ? 'block' : 'none';
+}
+</script>
+</body>
+</html>

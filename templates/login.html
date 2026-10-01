@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Giriş — MEXC Otomasyon Paneli</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="wrap" style="max-width:360px; padding-top:80px;">
+  <h1 style="text-align:center">Panel Girişi</h1>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash" style="background:#3A2A12; border-color:#D9534F; color:#F2A7A5;">
+        {% for m in messages %}<div>{{ m }}</div>{% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="card">
+    <form method="post">
+      <label>Şifre
+        <input type="password" name="password" autofocus required>
+      </label>
+      <button type="submit" style="width:100%; margin-top:10px;">Giriş Yap</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+.env
+bot.db
+license.lic
+__pycache__/
+*.pyc
+dist/
+build/
+*.spec
+venv/

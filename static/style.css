@@ -1,0 +1,20 @@
+:root{ --bg:#0F1720; --card:#1A2530; --ink:#E8EDF2; --line:#2C3A47; --accent:#E8A33D; --danger:#D9534F; }
+*{box-sizing:border-box;}
+body{background:var(--bg); color:var(--ink); font-family:-apple-system,Segoe UI,Roboto,sans-serif; margin:0;}
+.wrap{max-width:820px; margin:0 auto; padding:28px 18px;}
+h1{font-size:1.5rem; margin-bottom:6px;}
+.warn{background:#3A2A12; border:1px solid var(--accent); color:var(--accent); padding:10px 14px; border-radius:8px; font-size:.85rem; margin-bottom:20px;}
+.flash{background:#1F3A2A; border:1px solid #3E7A55; padding:10px 14px; border-radius:8px; margin-bottom:16px; font-size:.85rem;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:20px;}
+.card h2{font-size:1.05rem; margin-bottom:14px;}
+.row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:12px;}
+label{display:flex; flex-direction:column; font-size:.78rem; opacity:.8; gap:5px; flex:1; min-width:140px;}
+label.chk{flex:none; flex-direction:row; align-items:center; gap:6px;}
+input, select{background:#0F1720; border:1px solid var(--line); color:var(--ink); border-radius:6px; padding:8px 10px; font-size:.9rem;}
+button{background:var(--accent); color:#241505; border:none; border-radius:6px; padding:9px 16px; font-weight:600; cursor:pointer; font-size:.85rem;}
+button.danger{background:var(--danger); color:#fff;}
+table{width:100%; border-collapse:collapse; font-size:.82rem;}
+th,td{text-align:left; padding:8px 6px; border-bottom:1px solid var(--line);}
+.muted{opacity:.6; font-size:.85rem;}
+.event-open_error, .event-close_error{color:var(--danger);}
+.event-open_ok, .event-close_ok{color:#7FBF7F;}

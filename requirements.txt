@@ -1,0 +1,7 @@
+flask==3.0.3
+ccxt==4.4.31
+apscheduler==3.10.4
+python-dotenv==1.0.1
+gunicorn==22.0.0
+waitress==3.0.0
+pyinstaller==6.10.0
