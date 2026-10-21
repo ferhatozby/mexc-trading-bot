@@ -117,58 +117,9 @@ açıldığı ("bugün: Long/Short") görünür.
 `PANEL_PASSWORD` boş bırakılırsa koruma devre dışı kalır — VPS'e koyarken
 mutlaka doldur.
 
-## Windows .exe olarak paketleme (müşteriye program gibi teslim etmek için)
-
-Bu yöntemle web linki değil, müşterinin çift tıklayıp açacağı bir program verirsin.
-**Derleme işlemi kendi Windows bilgisayarında yapılmalı** (bu proje Linux üzerinde
-hazırlandığı için buradan doğrudan .exe üretilemez).
-
-### 1. Lisans anahtarını değiştir (tek seferlik, ilk kurulumda)
-
-`license_check.py` içindeki şu satırı bul:
-```python
-SECRET = b"BURAYA-KENDI-GIZLI-ANAHTARINI-YAZ-12345"
-```
-Bunu kimseyle paylaşmadığın, kendine özel uzun bir metinle değiştir. Bu adımı
-atlarsan herkes aynı anahtarla sahte lisans üretebilir.
-
-### 2. Müşteriye özel bir lisans dosyası üret
-
-```bash
-python3 generate_license.py
-```
-Müşteri adını ve bitiş tarihini (ör. "2027-09-26") gir. Bu, `license.lic`
-adında bir dosya oluşturur.
-
-### 3. Windows'ta exe'yi derle
-
-Windows bilgisayarında, bu klasörün içinde:
-```
-build.bat
-```
-çift tıkla veya çalıştır. Birkaç dakika sürer. Bittiğinde `dist\MexcBot.exe`
-oluşur.
-
-### 4. Teslimat paketi
-
-Müşteriye şu 3 dosyayı **aynı klasörde** ver:
-- `MexcBot.exe`
-- `.env` (MEXC API key/secret'ı doldurulmuş olarak — bkz. `.env.example`)
-- `license.lic` (2. adımda ürettiğin)
-
-Müşteri `MexcBot.exe`'ye çift tıklayınca: lisansı kontrol eder, sunucuyu
-başlatır ve tarayıcıda paneli otomatik açar. Pencereyi kapatırsa bot durur.
-
-### Lisans hakkında dürüst olmak gerekirse
-
-Bu, kararlı bir kullanıcıyı/tekrar satışı caydıran pratik bir kilit — banka
-seviyesinde bir kopya koruması değil. Motive biri exe'yi tersine mühendislikle
-inceleyip SECRET'ı bulabilir. Bu ölçekteki bir iş için yeterli, ama "hiçbir
-şekilde kırılamaz" diye satma.
-
 ## Bilinen sınırlar / geliştirilebilecek noktalar
 
 - Tek bir MEXC hesabı/API anahtarı ile çalışır (çoklu müşteri için ayrı kurulum gerekir).
 - Panelde şu an giriş/şifre koruması yok — reverse proxy ile eklenmesi önerilir.
 - Ağ kopması sırasında planlanan bir açma/kapama kaçırılırsa, iş "logs" tablosunda
-  hata olarak görünür ama otomatik yeniden deneme yapılmaz (istenirse eklenebilir).
+  hata olarak görünür ama otomatik yeniden deneme yapılmaz.
